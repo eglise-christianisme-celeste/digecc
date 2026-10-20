@@ -9,7 +9,7 @@
 # Étapes :
 #   1. Backup de la base de données (pg_dump)
 #   2. Pull des dernières modifications depuis origin/main
-#   3. Build des images Docker (portal + shield)
+#   3. Build de l'image Docker du portail
 #   4. Redémarrage des services (down/up)
 #   5. Vérification de santé (health check)
 #   6. Nettoyage des images Docker inutilisées
@@ -231,7 +231,8 @@ for i in $(seq 1 $HEALTH_CHECK_RETRIES); do
     sleep $HEALTH_CHECK_INTERVAL
 done
 
-# Vérifier aussi que nginx (shield) tourne
+# Vérifier aussi que le proxy partagé (ecc-shield, projet ecc-edge d'ecc-infrastructure) tourne :
+# ce déploiement ne l'arrête ni ne le reconstruit plus.
 SHIELD_STATUS=$(docker inspect ecc-shield --format='{{.State.Status}}' 2>/dev/null || echo "absent")
 if [ "$SHIELD_STATUS" != "running" ]; then
     echo "[deploy] ⚠  Le conteneur ecc-shield n'est pas running (status: $SHIELD_STATUS)"

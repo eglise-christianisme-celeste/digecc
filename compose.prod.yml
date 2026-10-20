@@ -1,3 +1,8 @@
+# Fixed project name: volumes (database included) and network keep their ecc2026_* names whatever the
+# folder or repository is called. The shared proxy (ecc-shield) and its certificates belong to
+# ecc-infrastructure (project ecc-edge), never to this deployment.
+name: ecc2026
+
 services:
   personal:
     image: postgres:16.9-alpine
@@ -107,64 +112,14 @@ services:
         max-size: "10m"
         max-file: "5"
 
-  shield:
-    build:
-      context: ./docker/nginx
-    image: ecc-shield:latest
-    container_name: ecc-shield
-
-    restart: unless-stopped
-
-    depends_on:
-      - portal
-
-    ports:
-      - "80:80"
-      - "443:443"
-
-    volumes:
-      - static_data:/static:ro
-      - media_data:/media:ro
-      - certbot_webroot:/var/www/certbot:ro
-      - letsencrypt:/etc/letsencrypt:ro
-
-    security_opt:
-      - no-new-privileges:true
-
-    networks:
-      - ecc_network
-
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-        max-file: "5"
-
-
-  certbot:
-    image: certbot/certbot:latest
-    container_name: ecc-certbot
-
-    volumes:
-      - certbot_webroot:/var/www/certbot
-      - letsencrypt:/etc/letsencrypt
-
-    entrypoint: ["certbot"]
-
-    networks:
-      - ecc_network
-
-    profiles:
-      - certificates
-
 volumes:
   personal_data:
   static_data:
   media_data:
-  certbot_webroot:
-  letsencrypt:
 
 networks:
+  # Shared with ecc-shield and CST: created once on the server, never removed by this deployment.
   ecc_network:
-    driver: bridge
+    name: ecc2026_ecc_network
+    external: true
 
