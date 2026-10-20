@@ -1,0 +1,7 @@
+# Reviewed Trivy exceptions, each limited to a rule and a path (read by the ecc-devops pipeline).
+misconfigurations:
+  - id: DS-0002
+    paths: ["Dockerfile"]
+    statement: >-
+      Local development image only (docker-compose.yml, code bind-mounted from the workstation). Production is
+      built from Dockerfile.prod, which runs as eccparishatlast.

@@ -2,11 +2,9 @@
 # CI — Intégration continue
 # =============================================================================
 #
-# Déclenché sur :
-#   - Chaque Pull Request vers main
-#   - Chaque push sur main, par le CD (workflow_call) avant le déploiement : un déclencheur push propre
-#     à ce workflow partagerait le groupe de concurrence ci-refs/heads/main avec celui du CD, et l'un
-#     annulerait l'autre (CD sauté le 20/10/2026).
+# Déclenché sur chaque Pull Request vers main. Le déploiement ne passe plus par GitHub Actions : l'image
+# est construite, scannée et signée par Jenkins (ci/ecc.json), puis déployée par ecc-infrastructure
+# (environments/vps-digecc).
 #
 # Étapes :
 #   1. Lint Python (ruff)
@@ -23,7 +21,6 @@ name: CI
 on:
   pull_request:
     branches: [main]
-  workflow_call:
 
 concurrency:
   group: ci-${{ github.ref }}

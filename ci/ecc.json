@@ -1,0 +1,7 @@
+{
+  "application": "digecc",
+  "profile": "light",
+  "images": {
+    "portal": {"context": ".", "dockerfile": "Dockerfile.prod"}
+  }
+}
