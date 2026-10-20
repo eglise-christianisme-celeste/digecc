@@ -1420,7 +1420,7 @@ class AffectationTerritoriale(models.Model):
         verbose_name_plural = "Affectations territoriales"
         constraints = [
             models.CheckConstraint(
-                check=(
+                condition=(
                     models.Q(
                         niveau="province",
                         province__isnull=False,

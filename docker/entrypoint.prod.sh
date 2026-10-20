@@ -1,6 +1,11 @@
 #!/bin/sh
 set -e
 
+# Release tasks at startup (database wait, migrations, static files): the historical behaviour, kept by default.
+# The ecc-infrastructure deployment sets RUN_RELEASE_TASKS=false and runs them once, before the switch, with a
+# dedicated migration identity: the application account then needs no schema rights.
+if [ "${RUN_RELEASE_TASKS:-true}" = "true" ]; then
+
 echo "Waiting for PostgreSQL..."
 
 python <<'PYEOF'
@@ -38,6 +43,8 @@ python manage.py migrate --noinput
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
+fi
 
 echo "Starting Gunicorn..."
 

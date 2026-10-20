@@ -1,0 +1,15 @@
+# Dépendances directes (plages). requirements.txt est généré depuis ce fichier, versions et empreintes figées :
+#   uv pip compile --generate-hashes --python-version 3.12 --python-platform x86_64-manylinux_2_28 --emit-index-url --no-strip-extras requirements.in -o requirements.txt
+# L'image installe requirements.txt avec --require-hashes : un build ne résout jamais rien de lui-même.
+Django>=5.2,<5.3                # LTS (la 5.0 n'a plus de correctifs de sécurité depuis avril 2025)
+openpyxl>=3.1,<4.0
+django-environ>=0.11,<1.0
+psycopg2-binary>=2.9,<3.0       # PostgreSQL — obligatoire désormais (plus de SQLite)
+gunicorn>=23.0,<24.0            # serveur d'application ; 23 corrige le request smuggling (CVE-2024-6827)
+Pillow>=12.3,<13.0              # champs ImageField (photos) ; 12.3 corrige les failles de décodage connues
+qrcode[pil]>=7.4,<8.0
+
+# API (Phase 1 — séparation frontend/backend)
+djangorestframework>=3.16,<3.17
+djangorestframework-simplejwt>=5.5,<5.6
+django-cors-headers>=4.9,<5.0

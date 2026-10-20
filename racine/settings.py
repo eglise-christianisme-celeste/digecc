@@ -18,7 +18,10 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # ---------------------------------------------------------------------------
 # Variables d'environnement (.env)
 # ---------------------------------------------------------------------------
-env = environ.Env(
+# FileAwareEnv : VARIABLE, sinon le contenu du fichier désigné par VARIABLE_FILE (secrets rendus par l'agent
+# Vault en production, jamais dans l'environnement). Une variable simple reste prioritaire : les .env marchent
+# comme avant.
+env = environ.FileAwareEnv(
     DEBUG=(bool),
 )
 
