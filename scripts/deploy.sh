@@ -243,6 +243,12 @@ fi
 
 echo "[deploy] ✅ Nginx (shield) est opérationnel"
 
+# Le proxy partagé résout ecc-portal au chargement de sa configuration : le portail venant d'être
+# recréé (nouvelle adresse possible), le recharger, comme le fait le déploiement de CST pour sa passerelle.
+docker exec ecc-shield nginx -t || die "Configuration du proxy partagé invalide : aucun rechargement"
+docker exec ecc-shield nginx -s reload || die "Rechargement du proxy partagé impossible"
+echo "[deploy] ✅ Proxy partagé rechargé"
+
 # ---------------------------------------------------------------------------
 # Étape 6 : Nettoyage
 # ---------------------------------------------------------------------------
