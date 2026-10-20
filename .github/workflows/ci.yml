@@ -3,8 +3,10 @@
 # =============================================================================
 #
 # Déclenché sur :
-#   - Chaque push (toutes branches)
-#   - Chaque Pull Request vers main ou development
+#   - Chaque Pull Request vers main
+#   - Chaque push sur main, par le CD (workflow_call) avant le déploiement : un déclencheur push propre
+#     à ce workflow partagerait le groupe de concurrence ci-refs/heads/main avec celui du CD, et l'un
+#     annulerait l'autre (CD sauté le 20/10/2026).
 #
 # Étapes :
 #   1. Lint Python (ruff)
@@ -19,8 +21,6 @@
 name: CI
 
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   workflow_call:
