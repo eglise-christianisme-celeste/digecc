@@ -5,7 +5,15 @@
 #   with --require-hashes and wheels only (musllinux): no compiler in the image, no pip once installed.
 # - Code owned by root and read-only for the application user; only staticfiles/ and media/ are writable.
 #   Compatible with a read-only root filesystem (writes go to /tmp and those two volumes).
-FROM python:3.12-alpine@sha256:1b668429b3511ab407d8e00648891631b0b1a4d7e15e3ca70f38ab5b91ad4ab4
+ARG PYTHON_IMAGE=python:3.12-alpine@sha256:1b668429b3511ab407d8e00648891631b0b1a4d7e15e3ca70f38ab5b91ad4ab4
+
+# The same permissions whatever the build context (a CI snapshot with 0700 directories, a Windows checkout with
+# 0666 files): directories 0755, files 0644, 0755 when executable. Only this stage pays for the chmod.
+FROM ${PYTHON_IMAGE} AS code
+COPY . /code
+RUN chmod -R u=rwX,go=rX /code && chmod 0755 /code/docker/entrypoint.prod.sh
+
+FROM ${PYTHON_IMAGE}
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -23,11 +31,15 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements.txt \
     && rm -rf /usr/local/lib/python3.12/site-packages/pip* /usr/local/bin/pip*
 
-COPY . .
+COPY --from=code /code/ /app/
 
+# The build stops if the application user (neither root nor in its group) could not read its code or could change
+# it: every directory o+rx, every file o+r, nothing group or world writable, except the two volumes.
 RUN mkdir -p /app/staticfiles /app/media \
     && chown eccparishatlast:eccparishatlast /app/staticfiles /app/media \
-    && chmod 0755 docker/entrypoint.prod.sh
+    && bad=$(find /app \( -path /app/staticfiles -o -path /app/media -o -type l \) -prune -o \
+             \( -type d ! -perm -005 -o -type f ! -perm -004 -o -perm -020 -o -perm -002 \) -print | head -5) \
+    && if [ -n "$bad" ]; then echo "Code permissions refused for the application user: $bad" >&2; exit 1; fi
 
 USER eccparishatlast
 
