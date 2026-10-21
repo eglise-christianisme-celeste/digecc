@@ -1,0 +1,8 @@
+# Reviewed historical findings only (gitleaks reads this file at the repository root). Never an active secret:
+# rotate any real credential first, then never list it here.
+#
+# cookies.txt, committed and moved on 2026-07-09/10 then deleted: refresh tokens of a local API test session,
+# expired since July 2026 (audit of 2026-10-20). They stay in the history; the current tree has none.
+cf918271c629db6feae8c1fbe28463d50856184a:cookies.txt:jwt:5
+4099bc5a87dc46ad1d14e91d927fa317a7ed651a:recensement_paroisses_benin/cookies.txt:jwt:5
+bfe738f9fcea8ae191e7c5289e22f2e91ed5c37e:cookies.txt:jwt:5

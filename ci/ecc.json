@@ -1,0 +1,15 @@
+{
+  "application": "digecc",
+  "profile": "light",
+  "images": {
+    "portal": {"context": ".", "dockerfile": "Dockerfile.prod"}
+  },
+  "quality": {
+    "sonar": "digecc",
+    "python": {
+      "directory": ".",
+      "requirements": "requirements-test.txt",
+      "lint": [["ruff", "format", "--check", "."], ["ruff", "check", "."]]
+    }
+  }
+}

@@ -25,27 +25,18 @@ class NormalisationTests(SimpleTestCase):
         self.assertEqual(normaliser("  Tchakou  "), normaliser("Tchakou"))
         self.assertEqual(normaliser("SITE DE TCHAKOU"), normaliser("Site de Tchakou"))
 
-    def test_correction_appliquee_dans_le_bon_district(self):
+    def test_ancien_nom_harmonise(self):
         self.assertEqual(
-            corriger_nom_site("Site de Tchakou", "des Sites particuliers"),
-            "Cathédrale de Tchakou",
+            corriger_nom_site("Site de Nativité de Sèmè Plage"),
+            "Site de la Nativité de Sèmè-Plage",
         )
-        self.assertEqual(
-            corriger_nom_site("Site de Ketu", "↳ District ecclésial des Sites particuliers "),
-            "Saint SBJ Oshoffa Cathedral",
-        )
+        self.assertEqual(corriger_nom_site("SITE CÉLESTE D'IMÈKO"), "Cité Céleste d'Imèko")
 
-    def test_correction_non_appliquee_hors_district(self):
-        self.assertEqual(
-            corriger_nom_site("Site de Tchakou", "District de Dangbo"),
-            "Site de Tchakou",
-        )
+    def test_nom_deja_harmonise_reste_inchange(self):
+        self.assertEqual(corriger_nom_site("Site de Tchakou"), "Site de Tchakou")
 
     def test_nom_non_reconnu_reste_inchange(self):
-        self.assertEqual(
-            corriger_nom_site("Un nom inconnu", "des Sites particuliers"),
-            "Un nom inconnu",
-        )
+        self.assertEqual(corriger_nom_site("Un nom inconnu"), "Un nom inconnu")
 
     def test_couverture_des_six_noms_du_classeur(self):
         bruts = [
@@ -57,9 +48,7 @@ class NormalisationTests(SimpleTestCase):
             "Site de Makoko",
         ]
         for brut in bruts:
-            corrige = corriger_nom_site(brut, "des Sites particuliers")
-            self.assertNotEqual(corrige, brut, f"« {brut} » n'a pas été corrigé")
-            self.assertIn(corrige, CORRECTIONS_SITES_PARTICULIERS.values())
+            self.assertIn(corriger_nom_site(brut), CORRECTIONS_SITES_PARTICULIERS.values(), f"« {brut} » non reconnu")
 
 
 class CommandeCorrectionTests(TestCase):
@@ -75,39 +64,39 @@ class CommandeCorrectionTests(TestCase):
     def test_commande_corrige_les_noms_bruts(self):
         from django.core.management import call_command
 
-        Village.objects.create(zone=self.zone_benin, nom="Site de Tchakou")
-        Village.objects.create(zone=self.zone_nigeria, nom="Site de Ketu")
+        Village.objects.create(zone=self.zone_benin, nom="Site de Nativité de Sèmè Plage")
+        Village.objects.create(zone=self.zone_nigeria, nom="Site Céleste d'Imèko")
 
         call_command("corriger_sites_particuliers")
 
-        self.assertTrue(Village.objects.filter(zone=self.zone_benin, nom="Cathédrale de Tchakou").exists())
-        self.assertTrue(Village.objects.filter(zone=self.zone_nigeria, nom="Saint SBJ Oshoffa Cathedral").exists())
+        self.assertTrue(Village.objects.filter(zone=self.zone_benin, nom="Site de la Nativité de Sèmè-Plage").exists())
+        self.assertTrue(Village.objects.filter(zone=self.zone_nigeria, nom="Cité Céleste d'Imèko").exists())
 
     def test_commande_idempotente(self):
         from django.core.management import call_command
 
-        Village.objects.create(zone=self.zone_benin, nom="Site de Tchakou")
+        Village.objects.create(zone=self.zone_benin, nom="Site Céleste d'Imèko")
         call_command("corriger_sites_particuliers")
         call_command("corriger_sites_particuliers")  # deuxième exécution : ne doit rien casser
 
-        self.assertEqual(Village.objects.filter(zone=self.zone_benin, nom="Cathédrale de Tchakou").count(), 1)
+        self.assertEqual(Village.objects.filter(zone=self.zone_benin, nom="Cité Céleste d'Imèko").count(), 1)
 
     def test_commande_ne_touche_pas_les_villages_hors_district(self):
         from django.core.management import call_command
 
         autre_district = District.objects.create(nom="Dangbo", province=self.province, code="D02")
         autre_zone = Zone.objects.create(nom="Zone Dangbo", district=autre_district, code="Z003")
-        Village.objects.create(zone=autre_zone, nom="Site de Tchakou")
+        Village.objects.create(zone=autre_zone, nom="Site Céleste d'Imèko")
 
         call_command("corriger_sites_particuliers")
 
-        self.assertTrue(Village.objects.filter(zone=autre_zone, nom="Site de Tchakou").exists())
+        self.assertTrue(Village.objects.filter(zone=autre_zone, nom="Site Céleste d'Imèko").exists())
 
     def test_commande_dry_run_n_ecrit_rien(self):
         from django.core.management import call_command
 
-        Village.objects.create(zone=self.zone_benin, nom="Site de Tchakou")
+        Village.objects.create(zone=self.zone_benin, nom="Site Céleste d'Imèko")
         call_command("corriger_sites_particuliers", dry_run=True)
 
-        self.assertTrue(Village.objects.filter(zone=self.zone_benin, nom="Site de Tchakou").exists())
-        self.assertFalse(Village.objects.filter(zone=self.zone_benin, nom="Cathédrale de Tchakou").exists())
+        self.assertTrue(Village.objects.filter(zone=self.zone_benin, nom="Site Céleste d'Imèko").exists())
+        self.assertFalse(Village.objects.filter(zone=self.zone_benin, nom="Cité Céleste d'Imèko").exists())

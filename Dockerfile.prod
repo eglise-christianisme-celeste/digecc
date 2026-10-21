@@ -1,40 +1,40 @@
-FROM python:3.12-slim
+# DIGECC production image.
+# - Alpine base, the one of SEME: no HIGH/CRITICAL findings, unlike the Debian slim variants (unfixed util-linux,
+#   perl, sqlite, zlib). Pinned by digest; refresh it deliberately and rescan.
+# - Dependencies installed from requirements.txt (generated from requirements.in, every version and hash pinned)
+#   with --require-hashes and wheels only (musllinux): no compiler in the image, no pip once installed.
+# - Code owned by root and read-only for the application user; only staticfiles/ and media/ are writable.
+#   Compatible with a read-only root filesystem (writes go to /tmp and those two volumes).
+FROM python:3.12-alpine@sha256:1b668429b3511ab407d8e00648891631b0b1a4d7e15e3ca70f38ab5b91ad4ab4
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
 WORKDIR /app
 
-# Install only required system packages
-RUN apt-get update \
-    && apt-get install -y --no-install-recommends \
-        build-essential \
-        libpq-dev \
-    && rm -rf /var/lib/apt/lists/*
-
-# Create an unprivileged user
-RUN groupadd --system eccparishatlast \
-    && useradd --system \
-       --gid eccparishatlast \
-       --create-home \
-       --shell /usr/sbin/nologin \
-       eccparishatlast
+# Unprivileged user, uid and gid 999 as in the former Debian image: files already in the volumes keep their owner.
+# Alpine gives gid 999 to its ping group, unused here.
+RUN delgroup ping \
+    && addgroup -S -g 999 eccparishatlast \
+    && adduser -S -D -u 999 -G eccparishatlast -h /home/eccparishatlast -s /sbin/nologin eccparishatlast
 
 COPY requirements.txt .
-
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --require-hashes --only-binary=:all: -r requirements.txt \
+    && rm -rf /usr/local/lib/python3.12/site-packages/pip* /usr/local/bin/pip*
 
 COPY . .
 
-RUN mkdir -p \
-    /app/staticfiles \
-    /app/media \
-    && chown -R eccparishatlast:eccparishatlast /app
-
-RUN chmod +x docker/entrypoint.prod.sh
+RUN mkdir -p /app/staticfiles /app/media \
+    && chown eccparishatlast:eccparishatlast /app/staticfiles /app/media \
+    && chmod 0755 docker/entrypoint.prod.sh
 
 USER eccparishatlast
 
 EXPOSE 8000
+
+# Gunicorn accepts connections: a TCP probe does not depend on ALLOWED_HOSTS.
+HEALTHCHECK --interval=30s --timeout=5s --start-period=60s \
+    CMD python -c "import socket; socket.create_connection(('127.0.0.1', 8000), 3).close()"
 
 ENTRYPOINT ["docker/entrypoint.prod.sh"]
