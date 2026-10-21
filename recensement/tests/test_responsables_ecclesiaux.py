@@ -222,7 +222,10 @@ class ResponsablesEcclesiauxTests(TestCase):
         )
         _, index = construire_index_responsables([fiche])
         responsables = responsables_pour_fiche(fiche, index)
-        self.assertEqual(responsables["zone"]["nom"], "Responsable 4")
+        # nom_responsable est le champ historique : depuis la saisie séparée du nom et des prénoms, l'index l'expose
+        # sous nom_legacy, et nom reste vide.
+        self.assertEqual(responsables["zone"]["nom_legacy"], "Responsable 4")
+        self.assertEqual(responsables["zone"]["nom"], "")
 
     def test_export_excel_contient_les_responsables(self):
         poste = self.creer_poste(NiveauResponsabiliteEcclesiale.REGION, region=self.region)

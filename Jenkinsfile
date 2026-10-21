@@ -12,6 +12,7 @@ library identifier: "ecc-devops@${revision}", retriever: modernSCM(
     ],
     libraryPath: 'shared-library/'
 )
-// Secrets, image, Trivy and SBOM; RELEASE adds one approval, the Vault Transit signature and the GHCR publication.
+// Secrets, ruff, Django checks and tests under coverage, Sonar Quality Gate, image, Trivy, SBOM; RELEASE adds one
+// approval, the Vault Transit signature and the GHCR publication.
 eccPipeline(agent: 'seme-isolated', profile: 'light', release: params.RELEASE == true, ticket: params.TICKET ?: '',
             infrastructureRevision: params.INFRA_REVISION ?: '')

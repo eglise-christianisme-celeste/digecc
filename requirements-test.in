@@ -1,0 +1,6 @@
+# Dépendances des tests Jenkins (ecc-devops, étape dependencies) : la production figée, plus la couverture et ruff.
+# requirements-test.txt en est généré, versions et empreintes figées :
+#   uv pip compile --generate-hashes --python-version 3.12 --python-platform x86_64-manylinux_2_28 --emit-index-url --no-strip-extras requirements-test.in -o requirements-test.txt
+-r requirements.txt
+coverage>=7.10,<8
+ruff>=0.14,<1
