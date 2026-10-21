@@ -6,7 +6,7 @@ openpyxl>=3.1,<4.0
 django-environ>=0.11,<1.0
 psycopg2-binary>=2.9,<3.0       # PostgreSQL — obligatoire désormais (plus de SQLite)
 gunicorn>=23.0,<24.0            # serveur d'application ; 23 corrige le request smuggling (CVE-2024-6827)
-Pillow>=12.3,<13.0              # champs ImageField (photos) ; 12.3 corrige les failles de décodage connues
+Pillow>=13.0,<14.0              # champs ImageField (photos) ; 13.0 corrige les failles de décodage JPEG, TIFF, GIF et PDF d'octobre 2026
 qrcode[pil]>=7.4,<8.0
 
 # API (Phase 1 — séparation frontend/backend)
